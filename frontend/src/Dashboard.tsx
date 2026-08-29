@@ -312,10 +312,9 @@ function Dashboard() {
                     O conteúdo vindo do banco é interpretado
                     como HTML pelo navegador.
                   */}
+                  {comentario.texto}
                   <div
-                    dangerouslySetInnerHTML={{
-                      __html: comentario.texto
-                    }}
+                    
                   />
 
                 </div>

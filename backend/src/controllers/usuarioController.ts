@@ -1,23 +1,54 @@
 import { Request, Response } from "express";
 import db from "../database";
+import jwt from "jsonwebtoken";
+import ValidarToken from "../Services/jwtServices";
 
+
+export const ehAdmin = async (req: Request, res: Response) => {
+
+    const {
+        tokenStorage
+    } = req.body as { tokenStorage: string };
+    const payload = ValidarToken(tokenStorage);
+
+    if(!payload)
+         res.status(401).json({
+            success: false,
+            message: "Token inválido" });
+    if(payload && payload.tipo !== 1)
+        res.status(403).json({
+            success: false,
+            message: "Acesso negado. Usuário não é admin" });   
+    return res.json({
+        success: true,
+        message: "Usuário é admin"
+    });
+};
 
 
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
-
+    
     const query =
-        `SELECT * FROM usuario WHERE email = '${email}' AND senha = '${password}'`;
+        `SELECT * FROM usuario WHERE email = $1 AND senha = $2`;
 
     console.log(`Query Executada: ${query}`);
 
-    const result = await db.query(query);
+    const result = await db.query(query, [email, password]);
 
     if (result.rowCount && result.rowCount > 0) {
-        
+        const token = jwt.sign(
+            {
+                id: result.rows[0].id,
+                nome: result.rows[0].nome,
+                email: result.rows[0].email,
+                tipo: result.rows[0].tipo_usuario_id
+            }, (global as any).segredoJwt);
+
         res.json({
             success: true,
-            user: result.rows[0]
+            user: result.rows[0],
+            token: token
         });
 
     } else {
