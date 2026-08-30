@@ -7,6 +7,11 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+
+const cookiesParser = require("cookie-parser");
+app.use(cookiesParser());
+
 (global as any).segredoJwt = "Tnlmaslkcalsdfkalj0129iT";
 app.use("/usuario", userRoutes);
 app.use("/comentario", commentRoutes);

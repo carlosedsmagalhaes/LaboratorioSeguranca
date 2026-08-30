@@ -4,24 +4,26 @@ import jwt from "jsonwebtoken";
 import ValidarToken from "../Services/jwtServices";
 
 
-export const ehAdmin = async (req: Request, res: Response) => {
+export const payloadUsuario = async (req: Request, res: Response) => {
+    const token = req.cookies.token;
 
-    const {
-        tokenStorage
-    } = req.body as { tokenStorage: string };
-    const payload = ValidarToken(tokenStorage);
+    if (!token) {
+        res.status(401).json({
+            success: false,
+            message: "Token não fornecido"
+        });
+        return;
+    }
+    const payload = ValidarToken(token);
 
     if(!payload)
          res.status(401).json({
             success: false,
             message: "Token inválido" });
-    if(payload && payload.tipo !== 1)
-        res.status(403).json({
-            success: false,
-            message: "Acesso negado. Usuário não é admin" });   
     return res.json({
         success: true,
-        message: "Usuário é admin"
+        message: "Payload do usuário obtido com sucesso",
+        payload: payload
     });
 };
 
@@ -44,11 +46,9 @@ export const login = async (req: Request, res: Response) => {
                 email: result.rows[0].email,
                 tipo: result.rows[0].tipo_usuario_id
             }, (global as any).segredoJwt);
-
+        res.cookie("token", token, { httpOnly: true });
         res.json({
             success: true,
-            user: result.rows[0],
-            token: token
         });
 
     } else {
@@ -127,7 +127,22 @@ export const novoLogin = async (req: Request, res: Response) => {
 
 
 export const atualizarIptu = async (req: Request, res: Response) => {
-
+    const token = req.cookies.token;
+    const payload = ValidarToken(token);
+    if (!payload) {
+        res.status(401).json({
+            success: false,
+            message: "Token inválido"
+        });
+        return;
+    }
+    if(payload && payload.tipo !== 1) {
+        res.status(403).json({
+            success: false,
+            message: "Acesso negado. Usuário não é admin"
+        });
+        return;
+    }
     const {
         usuarioId,
         novoValor
@@ -155,16 +170,26 @@ export const atualizarIptu = async (req: Request, res: Response) => {
 };
 
 
-export const getIptuPorIdUsuario = async (
-    req: Request,
-    res: Response
-) => {
+export const getIptuPorIdUsuario = async (req: Request, res: Response) => {
+    const token = req.cookies.token;
+    if (!token) {
+        res.status(401).json({
+            success: false,
+            message: "Token não fornecido"
+        });
+        return;
+    }
+    const payload = ValidarToken(token);
+    if(!payload) {
+        res.status(401).json({
+            success: false,
+            message: "Token inválido"
+        });
+        return;
+    }
 
-    const {
-        usuarioId,
-    } = req.body;
     const query =
-        `SELECT * FROM iptu WHERE usuario_id = '${usuarioId}'`;
+        `SELECT * FROM iptu WHERE usuario_id = '${payload.id}'`;
 
     console.log(`Query Executada: ${query}`);
 
