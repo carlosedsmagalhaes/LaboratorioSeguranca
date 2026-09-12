@@ -46,7 +46,10 @@ export const login = async (req: Request, res: Response) => {
                 email: result.rows[0].email,
                 tipo: result.rows[0].tipo_usuario_id
             }, (global as any).segredoJwt);
-        res.cookie("token", token, { httpOnly: true });
+        res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+        const csrfToken = crypto.randomBytes(32).toString("hex");
+
+        res.session.csrfToken = csrfToken;
         res.json({
             success: true,
         });
