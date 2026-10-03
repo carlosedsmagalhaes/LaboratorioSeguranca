@@ -15,14 +15,14 @@ export const criarComentario = async (
 
     const query =
         `INSERT INTO comentario (texto, usuario_id)
-         VALUES ('${texto}', '${usuarioId}')`;
+         VALUES ($1, $2)`;
 
     console.log(`Query Executada: ${query}`);
 
 
     try {
 
-        await db.query(query);
+        await db.query(query, [texto, usuarioId]);
 
         res.status(201).json({
             message: "Comentário criado"

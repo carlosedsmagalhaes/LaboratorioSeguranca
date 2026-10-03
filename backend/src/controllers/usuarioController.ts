@@ -5,13 +5,12 @@ import db from "../database";
 
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
-
     const query =
-        `SELECT * FROM usuario WHERE email = '${email}' AND senha = '${password}'`;
+        `SELECT * FROM usuario WHERE email = $1 AND senha = $2`;
 
     console.log(`Query Executada: ${query}`);
 
-    const result = await db.query(query);
+    const result = await db.query(query, [email, password]);
 
     if (result.rowCount && result.rowCount > 0) {
         
@@ -33,38 +32,38 @@ export const novoLogin = async (req: Request, res: Response) => {
     const { email, password, nome } = req.body;
 
     const queryNomeIpuExiste =
-        `SELECT * FROM iptu WHERE nome = '${nome}'`;
+        `SELECT * FROM iptu WHERE nome = $1`;
 
     console.log(`Query Executada: ${queryNomeIpuExiste}`);
 
-    const iptuResult = await db.query(queryNomeIpuExiste);
+    const iptuResult = await db.query(queryNomeIpuExiste, [nome]);
 
     if (iptuResult.rowCount && iptuResult.rowCount > 0) {
 
         const query =
             `INSERT INTO usuario (email, senha, nome, tipo_usuario_id)
-             VALUES ('${email}', '${password}', '${nome}', 3)`;
+             VALUES ($1, $2, $3, 3)`;
 
         console.log(`Query Executada: ${query}`);
 
-        const result = await db.query(query);
+        const result = await db.query(query, [email, password, nome]);
 
         const queryIdUsuario =
             `SELECT id FROM usuario
-             WHERE email = '${email}' AND senha = '${password}'`;
+             WHERE email = $1 AND senha = $2`;
 
         console.log(`Query Executada: ${queryIdUsuario}`);
 
-        const resultIdUsuario = await db.query(queryIdUsuario);
+        const resultIdUsuario = await db.query(queryIdUsuario, [email, password]);
 
         const queryUpdateTabelaIptu =
             `UPDATE iptu
-             SET usuario_id = '${resultIdUsuario.rows[0].id}'
-             WHERE nome = '${nome}'`;
+             SET usuario_id = $1
+             WHERE nome = $2`;
 
         console.log(`Query Executada: ${queryUpdateTabelaIptu}`);
 
-        const resultUpdate = await db.query(queryUpdateTabelaIptu);
+        const resultUpdate = await db.query(queryUpdateTabelaIptu, [resultIdUsuario.rows[0].id, nome]);
 
         if (
             result.rowCount &&
@@ -89,7 +88,7 @@ export const novoLogin = async (req: Request, res: Response) => {
     } else {
         res.status(404).json({
             success: false,
-            message: `Nome '${nome}' não encontrado no cadastro de municipes`
+            message: `Nome ${nome} não encontrado no cadastro de municipes`
         });
     }
 };
@@ -104,13 +103,13 @@ export const atualizarIptu = async (req: Request, res: Response) => {
 
     const query =
         `UPDATE iptu
-         SET valor = '${novoValor}'
-         WHERE usuario_id = '${usuarioId}'`;
+         SET valor = $1
+         WHERE usuario_id = $2`;
 
     console.log(`Query Executada: ${query}`);
 
     try {
-        await db.query(query);
+        await db.query(query, [novoValor, usuarioId]);
 
         res.json({
             message: "IPTU atualizado"
@@ -133,13 +132,13 @@ export const getIptuPorIdUsuario = async (
         usuarioId,
     } = req.body;
     const query =
-        `SELECT * FROM iptu WHERE usuario_id = '${usuarioId}'`;
+        `SELECT * FROM iptu WHERE usuario_id = $1`;
 
     console.log(`Query Executada: ${query}`);
 
     try {
 
-        const result = await db.query(query);
+        const result = await db.query(query, [usuarioId]);
 
         console.log(`Retorno: ${JSON.stringify(result.rows)}`);
 
