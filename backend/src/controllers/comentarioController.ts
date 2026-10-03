@@ -1,6 +1,7 @@
 
 import { Request, Response } from "express";
 import db from "../database";
+import xss from "xss";
 
 
 export const criarComentario = async (
@@ -13,6 +14,8 @@ export const criarComentario = async (
         usuarioId
     } = req.body;
 
+    const textoSanitizado = xss(texto);
+
     const query =
         `INSERT INTO comentario (texto, usuario_id)
          VALUES ($1, $2)`;
@@ -22,7 +25,8 @@ export const criarComentario = async (
 
     try {
 
-        await db.query(query, [texto, usuarioId]);
+        //CORREÇÃO CONTRA SQL INJECTION E XSS.
+        await db.query(query, [textoSanitizado, usuarioId]);
 
         res.status(201).json({
             message: "Comentário criado"

@@ -189,23 +189,12 @@ export const getQRCodeOrCodBarras = async (
 
     const tipo = req.query.tipo as string;
 
-
-    let codigoHtml = "";
-
-    if (tipo === "codigoDeBarras") {
-
-        codigoHtml =
-            `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=123456789" />`;
-
-    } else if (tipo === "qrcode") {
-
-        codigoHtml =
-            `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=QRCodeDemo" />`;
+    //CORREÇÃO CONTRA XSS, DEIXA DE ENVIAR O HTML DIRETAMENTE PARA O FRONTEND.
+    if (tipo !== "codigoDeBarras" && tipo !== "qrcode") {
+        res.status(400).json({ message: "Tipo de código inválido" });
+        return;
     }
 
-    res.send(`
-        <h2>Tipo selecionado: ${tipo}</h2>
-        ${codigoHtml}
-    `);
+    res.json({ tipo });
 };
 

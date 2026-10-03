@@ -22,7 +22,7 @@ function Dashboard() {
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
   const [tipoCodigo, setTipoCodigo] = useState("codigoDeBarras");
-  const [htmlRetorno, setHtmlRetorno] = useState("");
+  const [codigoGerado, setCodigoGerado] = useState<string | null>(null);
 
 
   const handleGerenciamento = async (e: React.FormEvent) => {
@@ -145,11 +145,11 @@ function Dashboard() {
 
   const buscarCodigo = async () => {
 
-    const response = await axios.get(
+    const response = await axios.get<{ tipo: "codigoDeBarras" | "qrcode" }>(
       "usuario/codigo-qr-ou-barra?tipo=" + tipoCodigo
     );
 
-    setHtmlRetorno(response.data);
+    setCodigoGerado(response.data.tipo);
   };
 
 
@@ -237,14 +237,21 @@ function Dashboard() {
       </button>
 
 
-      {htmlRetorno && (
 
-        <div
-          dangerouslySetInnerHTML={{
-            __html: htmlRetorno,
-          }}
-        />
 
+      {/*CORREÇÃO CONTRA XSS, DEIXA DE UTILIZAR O dangerouslySetInnerHTML PARA EXIBIR HTML NÃO SANITIZADO */}
+      {codigoGerado && (
+        <div>
+          <h2>Tipo selecionado: {codigoGerado}</h2>
+          <img
+            src={
+              codigoGerado === "codigoDeBarras"
+                ? "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=123456789"
+                : "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=QRCodeDemo"
+            }
+            alt={codigoGerado === "codigoDeBarras" ? "Código de barras" : "QR Code"}
+          />
+        </div>
       )}
 
 
@@ -307,18 +314,9 @@ function Dashboard() {
 
 
                   {/* 
-                    VULNERÁVEL A STORED XSS
-
-                    O conteúdo vindo do banco é interpretado
-                    como HTML pelo navegador.
+                    CORREÇÃO CONTRA XSS.
                   */}
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: comentario.texto
-                    }}
-                  />
-
-                </div>
+                  <div/>{comentario.texto}</div>
 
               </li>
 
