@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import db from "../database";
 import { GerarToken } from "../Services/jwtServices";
+import xss from "xss";
 
 
 
@@ -47,12 +48,17 @@ export const login = async (req: Request, res: Response) => {
 export const novoLogin = async (req: Request, res: Response) => {
     const { email, password, nome } = req.body;
 
+    //CORREÇÃO CONTRA XSS.
+    const emailSanitizado = xss(email);
+    const passwordSanitizado = xss(password);
+    const nomeSanitizado = xss(nome);
+
     const queryNomeIpuExiste =
         `SELECT * FROM iptu WHERE nome = $1`;
 
     console.log(`Query Executada: ${queryNomeIpuExiste}`);
 
-    const iptuResult = await db.query(queryNomeIpuExiste, [nome]);
+    const iptuResult = await db.query(queryNomeIpuExiste, [nomeSanitizado]);
 
     if (iptuResult.rowCount && iptuResult.rowCount > 0) {
 
@@ -62,7 +68,7 @@ export const novoLogin = async (req: Request, res: Response) => {
 
         console.log(`Query Executada: ${query}`);
 
-        const result = await db.query(query, [email, password, nome]);
+        const result = await db.query(query, [emailSanitizado, passwordSanitizado, nomeSanitizado]);
 
         const queryIdUsuario =
             `SELECT id FROM usuario
@@ -70,7 +76,7 @@ export const novoLogin = async (req: Request, res: Response) => {
 
         console.log(`Query Executada: ${queryIdUsuario}`);
 
-        const resultIdUsuario = await db.query(queryIdUsuario, [email, password]);
+        const resultIdUsuario = await db.query(queryIdUsuario, [emailSanitizado, passwordSanitizado]);
 
         const queryUpdateTabelaIptu =
             `UPDATE iptu
