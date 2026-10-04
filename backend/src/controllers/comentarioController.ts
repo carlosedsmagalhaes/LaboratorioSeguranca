@@ -9,10 +9,8 @@ export const criarComentario = async (
     res: Response
 ) => {
 
-    const {
-        texto,
-        usuarioId
-    } = req.body;
+    const { texto } = req.body;
+    const usuarioId = req.usuario?.id;
 
     const textoSanitizado = xss(texto);
 

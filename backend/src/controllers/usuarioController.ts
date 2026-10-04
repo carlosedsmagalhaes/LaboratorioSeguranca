@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import db from "../database";
+import { GerarToken } from "../Services/jwtServices";
 
 
 
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const query =
-        `SELECT * FROM usuario WHERE email = $1 AND senha = $2`;
+        `SELECT id, nome, email, tipo_usuario_id FROM usuario WHERE email = $1 AND senha = $2`;
 
     console.log(`Query Executada: ${query}`);
 
@@ -14,9 +15,17 @@ export const login = async (req: Request, res: Response) => {
 
     if (result.rowCount && result.rowCount > 0) {
         
+        const usuario = {
+            id: result.rows[0].id,
+            nome: result.rows[0].nome,
+            email: result.rows[0].email,
+            tipo: result.rows[0].tipo_usuario_id
+        };
+
         res.json({
             success: true,
-            user: result.rows[0]
+            user: usuario,
+            token: GerarToken(usuario)
         });
 
     } else {
@@ -128,9 +137,7 @@ export const getIptuPorIdUsuario = async (
     res: Response
 ) => {
 
-    const {
-        usuarioId,
-    } = req.body;
+    const usuarioId = req.usuario?.id;
     const query =
         `SELECT * FROM iptu WHERE usuario_id = $1`;
 

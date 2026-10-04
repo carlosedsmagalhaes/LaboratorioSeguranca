@@ -56,11 +56,8 @@ function Dashboard() {
         setUser(usuario);
 
 
-        const response = await axios.post<{ iptu: Iptuu[] }>(
-          "usuario/iptu-por-usuario",
-          {
-            usuarioId: usuario.id
-          }
+        const response = await axios.get<{ iptu: Iptuu[] }>(
+          "usuario/iptu-por-usuario"
         );
 
         setIptu(response.data.iptu[0]);
@@ -113,14 +110,10 @@ function Dashboard() {
         return;
       }
 
-      const usuario = JSON.parse(usuarioStorage);
-
-
       await axios.post(
         "/comentario",
         {
-          texto: novoComentario,
-          usuarioId: usuario.id
+          texto: novoComentario
         }
       );
 
