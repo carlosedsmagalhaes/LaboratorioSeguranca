@@ -11,10 +11,9 @@ declare global {
 }
 
 export function autenticar(req: Request, res: Response, next: NextFunction) {
-    const authorization = req.header("authorization");
-    const [tipo, token] = authorization?.split(" ") ?? [];
+    const token = req.cookies?.access_token as string | undefined;
 
-    if (tipo !== "Bearer" || !token) {
+    if (!token) {
         res.status(401).json({ message: "Token de autenticação ausente" });
         return;
     }

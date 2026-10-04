@@ -22,10 +22,17 @@ export const login = async (req: Request, res: Response) => {
             tipo: result.rows[0].tipo_usuario_id
         };
 
+        res.cookie("access_token", GerarToken(usuario), {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 60 * 60 * 1000,
+            path: "/"
+        });
+
         res.json({
             success: true,
-            user: usuario,
-            token: GerarToken(usuario)
+            user: usuario
         });
 
     } else {
